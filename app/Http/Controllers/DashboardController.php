@@ -14,7 +14,8 @@ class DashboardController extends Controller
         $totalPosts = Post::count();
         $totalUsers = User::count();
 
-        $postsPerMonth = Post::selectRaw('DATE_FORMAT(created_at, "%M") as month, COUNT(*) as count')
+        $postsPerMonth = Post::selectRaw('DATE_FORMAT(created_at, "%M %Y") as month, COUNT(*) as count')
+            ->where('created_at', '>=', now()->subMonths(6))
             ->groupBy('month')
             ->orderByRaw('MIN(created_at)')
             ->get();

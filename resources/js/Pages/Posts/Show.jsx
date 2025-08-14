@@ -3,36 +3,49 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link } from '@inertiajs/react';
 
 export default function Show({ post }) {
+    // Fallback jika post undefined
+    if (!post) {
+        return (
+            <AuthenticatedLayout>
+                <div className="text-center py-12">Loading...</div>
+            </AuthenticatedLayout>
+        );
+    }
+
     return (
         <AuthenticatedLayout
             header={<h2 className="font-semibold text-xl text-gray-800 leading-tight">Detail Postingan</h2>}
         >
-            <Head title={`Detail - ${post.title}`} />
+            <Head title={`Detail - ${post.title || 'Postingan'}`} /> {/* Fallback judul */}
 
             <div className="py-12 bg-gray-100 min-h-screen">
                 <div className="max-w-4xl mx-auto sm:px-6 lg:px-8">
-                    <div className="bg-white shadow rounded-lg overflow-hidden">
+                    <div className="bg-white shadow rounded-lg overflow-hidden transition-all duration-200">
                         {post.image && (
                             <img
                                 src={`/storage/${post.image}`}
                                 alt={post.title}
-                                className="w-full h-96 object-contain bg-black"
+                                className="w-full h-96 object-contain bg-gray-200" // Ganti bg-black jadi gray-200
+                                loading="lazy" // Optimasi lazy loading
                             />
                         )}
 
                         <div className="p-6">
-                            <h1 className="text-2xl font-bold text-gray-800 mb-2">{post.title}</h1>
+                            <h1 className="text-2xl font-bold text-gray-800 mb-2">
+                                {post.title || 'Judul Tidak Tersedia'}
+                            </h1>
                             <p className="text-sm text-gray-500 mb-4">
-                                Kategori: <span className="font-medium">{post.category?.name ?? '-'}</span>
+                                Kategori:{' '}
+                                <span className="font-medium">{post.category?.name ?? '-'}</span>
                             </p>
                             <p className="text-gray-700 whitespace-pre-line">
-                                {post.content}
+                                {post.content || 'Konten tidak tersedia'}
                             </p>
 
                             <div className="mt-6">
                                 <Link
                                     href="/posts"
-                                    className="inline-block bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700"
+                                    className="inline-block bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700 transition"
                                 >
                                     ← Kembali ke daftar
                                 </Link>
