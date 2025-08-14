@@ -67,8 +67,6 @@ class PostController extends Controller
 
     public function update(Request $request, Post $post)
     {
-
-
         $data = $request->validate([
             'title'       => 'required|string|max:255',
             'content'     => 'required|string',
@@ -83,6 +81,9 @@ class PostController extends Controller
             }
 
             $data['image'] = $request->file('image')->store('posts', 'public');
+        } else {
+            // Jika tidak upload file baru, jangan update kolom image
+            unset($data['image']);
         }
 
         $post->update($data);
