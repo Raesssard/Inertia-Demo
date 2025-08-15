@@ -1,12 +1,31 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 
 export default function Index({ categories }) {
+    const handleDelete = (id) => {
+        if (window.confirm('Apakah Anda yakin ingin menghapus kategori ini?')) {
+            router.delete(`/categories/${id}`, {
+                onSuccess: () => {
+                    console.log('Kategori berhasil dihapus');
+                },
+                onError: (errors) => {
+                    console.log('Gagal menghapus kategori:', errors);
+                    alert('Kategori tidak bisa dihapus karena sedang digunakan.');
+                },
+            });
+        }
+    };
+
     return (
         <AuthenticatedLayout header={<h2 className="font-semibold text-xl">Kategori</h2>}>
             <Head title="Kategori" />
 
             <div className="mt-6 p-6 bg-white shadow rounded-xl max-w-4xl mx-auto space-y-4">
+                {/* Peringatan statis */}
+                <div className="p-4 bg-yellow-100 text-yellow-700 rounded text-sm">
+                    * Kategori yang sedang dipakai tidak bisa dihapus
+                </div>
+
                 <div className="flex justify-between items-center mb-4">
                     <h3 className="text-lg font-semibold">Daftar Kategori</h3>
                     <Link
@@ -38,14 +57,12 @@ export default function Index({ categories }) {
                                         >
                                             Edit
                                         </Link>
-                                        <Link
-                                            as="button"
-                                            method="delete"
-                                            href={`/categories/${cat.id}`}
+                                        <button
+                                            onClick={() => handleDelete(cat.id)}
                                             className="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700"
                                         >
                                             Hapus
-                                        </Link>
+                                        </button>
                                     </div>
                                 </td>
                             </tr>

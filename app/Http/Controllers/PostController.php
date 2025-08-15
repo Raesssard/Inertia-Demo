@@ -21,12 +21,11 @@ class PostController extends Controller
     }
 
     public function show(Post $post)
-{
-    return Inertia::render('Posts/Show', [
-        'post' => $post->load('category'),
-    ]);
-}
-
+    {
+        return Inertia::render('Posts/Show', [
+            'post' => $post->load('category'),
+        ]);
+    }
 
     public function create()
     {
@@ -40,10 +39,10 @@ class PostController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'title'       => 'required|string|max:255',
-            'content'     => 'required|string',
+            'title' => 'required|string|max:255',
+            'content' => 'required|string',
             'category_id' => 'nullable|exists:categories,id',
-            'image'       => 'nullable|image|mimes:jpeg,jpg,png,webp|max:2048',
+            'image' => 'nullable|image|mimes:jpeg,jpg,png,webp|max:2048',
         ]);
 
         if ($request->hasFile('image')) {
@@ -68,10 +67,10 @@ class PostController extends Controller
     public function update(Request $request, Post $post)
     {
         $data = $request->validate([
-            'title'       => 'required|string|max:255',
-            'content'     => 'required|string',
+            'title' => 'required|string|max:255',
+            'content' => 'required|string',
             'category_id' => 'nullable|exists:categories,id',
-            'image'       => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+            'image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
         ]);
 
         if ($request->hasFile('image')) {
@@ -79,16 +78,16 @@ class PostController extends Controller
             if ($post->image && Storage::disk('public')->exists($post->image)) {
                 Storage::disk('public')->delete($post->image);
             }
-
             $data['image'] = $request->file('image')->store('posts', 'public');
         } else {
-            // Jika tidak upload file baru, jangan update kolom image
             unset($data['image']);
         }
 
         $post->update($data);
 
-        return redirect('/posts')->with('success', 'Post berhasil diperbarui.');
+        // Pastikan redirect membersihkan session errors
+        return redirect()->route('posts.index')->with('success', 'Post berhasil diperbarui.')
+            ->with('flash', ['status' => 'success']); // Tambah flash untuk reset state
     }
 
     public function destroy(Post $post)

@@ -6,7 +6,6 @@ use App\Models\Category;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
-
 class CategoryController extends Controller
 {
     public function index()
@@ -24,7 +23,7 @@ class CategoryController extends Controller
     {
         $request->validate(['name' => 'required']);
         Category::create($request->only('name'));
-        return redirect('/categories');
+        return redirect('/categories')->with('success', 'Kategori berhasil dibuat.');
     }
 
     public function edit(Category $category)
@@ -36,12 +35,18 @@ class CategoryController extends Controller
     {
         $request->validate(['name' => 'required']);
         $category->update($request->only('name'));
-        return redirect('/categories');
+        return redirect('/categories')->with('success', 'Kategori berhasil diperbarui.');
     }
 
     public function destroy(Category $category)
     {
+        // Cek apakah kategori digunakan oleh postingan
+        if ($category->posts()->exists()) {
+            return redirect('/categories')
+                ->with('error', 'Kategori tidak bisa dihapus karena sedang digunakan oleh postingan.');
+        }
+
         $category->delete();
-        return redirect('/categories');
+        return redirect('/categories')->with('success', 'Kategori berhasil dihapus.');
     }
 }
