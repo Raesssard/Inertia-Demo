@@ -16,13 +16,22 @@ export default function PostChart({ postsPerMonth }) {
     const labels = postsPerMonth.map(item => item.month);
     const dataCounts = postsPerMonth.map(item => item.count);
 
+    const colors = [
+        '#EF4444', // red-500
+        '#F59E0B', // yellow-500
+        '#10B981', // green-500
+        '#3B82F6', // blue-500
+        '#8B5CF6', // purple-500
+        '#EC4899', // pink-500
+    ];
+
     const data = {
         labels: labels,
         datasets: [
             {
                 label: 'Jumlah Postingan',
                 data: dataCounts,
-                backgroundColor: '#3B82F6', // Tailwind blue-500
+                backgroundColor: labels.map((_, index) => colors[index % colors.length]),
             },
         ],
     };
