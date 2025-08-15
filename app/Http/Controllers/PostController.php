@@ -10,15 +10,16 @@ use Illuminate\Support\Facades\Storage;
 
 class PostController extends Controller
 {
-    public function index()
-    {
-        $posts = Post::with('category')->latest()->paginate(10);
-
-        return Inertia::render('Posts/Index', [
-            'posts' => $posts,
-            'success' => session('success'),
-        ]);
-    }
+public function index()
+{
+    $posts = Post::with('category')->latest()->paginate(6);
+    $categories = Category::all();
+    return Inertia::render('Posts/Index', [
+        'posts' => $posts,
+        'categories' => $categories,
+        'success' => session('success'),
+    ]);
+}
 
     public function show(Post $post)
     {

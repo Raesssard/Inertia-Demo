@@ -1,24 +1,37 @@
-import React from 'react';
+import React, { useState } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Head, Link, useForm, usePage } from '@inertiajs/react';
 
-export default function Index({ posts, success }) {
+export default function Index({ posts = { data: [] }, categories = [], success }) {
     const { delete: destroy } = useForm();
+    const { url } = usePage();
+
+    const [searchTerm, setSearchTerm] = useState('');
+    const [selectedCategory, setSelectedCategory] = useState('');
 
     const handleDelete = (id) => {
         if (confirm('Yakin ingin menghapus postingan ini?')) {
             destroy(`/posts/${id}`, {
-                onSuccess: () => {}, // Placeholder untuk callback
-                onError: () => {},  // Placeholder untuk callback
+                onSuccess: () => console.log('Post deleted'),
+                onError: (errors) => console.log('Delete error:', errors),
             });
         }
     };
 
-    // Fallback jika posts undefined
-    if (!posts) {
+    // Filter postingan berdasarkan pencarian dan kategori
+    const filteredPosts = posts.data.filter((post) => {
+        const matchesSearch = post?.title?.toLowerCase().includes(searchTerm.toLowerCase()) || false;
+        const matchesCategory = !selectedCategory || post?.category_id === parseInt(selectedCategory);
+        return matchesSearch && matchesCategory;
+    });
+
+    // Debug props
+    console.log('Posts props:', posts, 'Categories:', categories, 'Success:', success);
+
+    if (!posts || typeof posts.data === 'undefined') {
         return (
             <AuthenticatedLayout>
-                <div className="text-center py-12">Loading...</div>
+                <div className="text-center py-12">Loading or error occurred...</div>
             </AuthenticatedLayout>
         );
     }
@@ -37,18 +50,37 @@ export default function Index({ posts, success }) {
                         </div>
                     )}
 
-                    <div className="flex justify-end mb-4">
+                    <div className="mb-6 flex flex-wrap gap-4 items-center">
+                        <input
+                            type="text"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            placeholder="Cari berdasarkan judul..."
+                            className="flex-1 p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                        />
+                        <select
+                            value={selectedCategory}
+                            onChange={(e) => setSelectedCategory(e.target.value)}
+                            className="flex-1 p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                        >
+                            <option value="">Semua Kategori</option>
+                            {categories.map((category) => (
+                                <option key={category.id} value={category.id}>
+                                    {category.name}
+                                </option>
+                            ))}
+                        </select>
                         <Link
                             href="/posts/create"
-                            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
+                            className="bg-blue-600 text-white px-6 py-3 rounded-lg shadow-md hover:bg-blue-700 hover:shadow-lg transition duration-200"
                         >
                             + Buat Postingan
                         </Link>
                     </div>
 
-                    {posts.data.length > 0 ? (
+                    {filteredPosts.length > 0 ? (
                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-                            {posts.data.map((post) => (
+                            {filteredPosts.map((post) => (
                                 <div
                                     key={post.id}
                                     className="bg-white rounded shadow hover:shadow-lg transition-all duration-200 overflow-hidden flex flex-col justify-between h-full"
@@ -59,7 +91,7 @@ export default function Index({ posts, success }) {
                                                 src={`/storage/${post.image}`}
                                                 alt={post.title}
                                                 className="w-full h-48 object-cover"
-                                                loading="lazy" // Optimasi lazy loading
+                                                loading="lazy"
                                             />
                                         )}
                                         <div className="p-4 flex-1">
@@ -95,7 +127,26 @@ export default function Index({ posts, success }) {
                         </div>
                     ) : (
                         <div className="text-center text-gray-500 py-10">
-                            Belum ada postingan.
+                            Tidak ada postingan yang sesuai.
+                        </div>
+                    )}
+
+                    {/* Pagination dengan pengecekan links */}
+                    {posts.data.length > 0 && posts.links && (
+                        <div className="mt-6 flex justify-center">
+                            <nav aria-label="Pagination">
+                                <ul className="flex items-center gap-2">
+                                    {posts.links.map((link, index) => (
+                                        <li key={index}>
+                                            <Link
+                                                href={link.url || '#'}
+                                                className={`px-3 py-2 rounded-lg ${link.active ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700'} hover:bg-blue-700 hover:text-white transition`}
+                                                dangerouslySetInnerHTML={{ __html: link.label || '' }}
+                                            />
+                                        </li>
+                                    ))}
+                                </ul>
+                            </nav>
                         </div>
                     )}
                 </div>

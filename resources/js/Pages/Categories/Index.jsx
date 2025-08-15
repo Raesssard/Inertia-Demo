@@ -1,7 +1,10 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, router } from '@inertiajs/react';
+import { useState } from 'react';
 
-export default function Index({ categories }) {
+export default function Index({ categories = { data: [] } }) {
+    const [searchTerm, setSearchTerm] = useState('');
+
     const handleDelete = (id) => {
         if (window.confirm('Apakah Anda yakin ingin menghapus kategori ini?')) {
             router.delete(`/categories/${id}`, {
@@ -16,18 +19,40 @@ export default function Index({ categories }) {
         }
     };
 
+    // Filter kategori berdasarkan pencarian
+    const filteredCategories = Array.isArray(categories.data)
+        ? categories.data.filter((cat) => cat?.name?.toLowerCase().includes(searchTerm.toLowerCase()))
+        : [];
+
+    // Debug props
+    console.log('Categories props:', categories);
+
+    // Fallback jika categories tidak valid
+    if (!categories || !categories.data || !Array.isArray(categories.data)) {
+        return (
+            <AuthenticatedLayout header={<h2 className="font-semibold text-xl">Kategori</h2>}>
+                <div className="text-center py-12">Loading or error occurred...</div>
+            </AuthenticatedLayout>
+        );
+    }
+
     return (
         <AuthenticatedLayout header={<h2 className="font-semibold text-xl">Kategori</h2>}>
             <Head title="Kategori" />
 
             <div className="mt-6 p-6 bg-white shadow rounded-xl max-w-4xl mx-auto space-y-4">
-                {/* Peringatan statis */}
                 <div className="p-4 bg-yellow-100 text-yellow-700 rounded text-sm">
                     * Kategori yang sedang dipakai tidak bisa dihapus
                 </div>
 
-                <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-lg font-semibold">Daftar Kategori</h3>
+                <div className="flex flex-col sm:flex-row justify-between items-center mb-4 gap-4">
+                    <input
+                        type="text"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        placeholder="Cari kategori..."
+                        className="w-full sm:w-auto p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    />
                     <Link
                         href="/categories/create"
                         className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm"
@@ -45,7 +70,7 @@ export default function Index({ categories }) {
                         </tr>
                     </thead>
                     <tbody>
-                        {categories.map((cat, index) => (
+                        {filteredCategories.map((cat, index) => (
                             <tr key={cat.id} className="hover:bg-gray-50 text-sm">
                                 <td className="px-4 py-2 border-b">{index + 1}</td>
                                 <td className="px-4 py-2 border-b">{cat.name}</td>
@@ -67,15 +92,34 @@ export default function Index({ categories }) {
                                 </td>
                             </tr>
                         ))}
-                        {categories.length === 0 && (
+                        {filteredCategories.length === 0 && (
                             <tr>
                                 <td colSpan="3" className="text-center py-4 text-gray-500">
-                                    Belum ada kategori.
+                                    {searchTerm ? 'Tidak ada kategori yang sesuai.' : 'Belum ada kategori.'}
                                 </td>
                             </tr>
                         )}
                     </tbody>
                 </table>
+
+                {/* Pagination */}
+                {categories.data.length > 0 && categories.links && (
+                    <div className="mt-6 flex justify-center">
+                        <nav aria-label="Pagination">
+                            <ul className="flex items-center gap-2">
+                                {categories.links.map((link, index) => (
+                                    <li key={index}>
+                                        <Link
+                                            href={link.url || '#'}
+                                            className={`px-3 py-2 rounded-lg ${link.active ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700'} hover:bg-blue-700 hover:text-white transition`}
+                                            dangerouslySetInnerHTML={{ __html: link.label || '' }}
+                                        />
+                                    </li>
+                                ))}
+                            </ul>
+                        </nav>
+                    </div>
+                )}
             </div>
         </AuthenticatedLayout>
     );
