@@ -12,6 +12,15 @@ export default function Show({ post }) {
         );
     }
 
+        // Fungsi untuk memformat tanggal
+    const formatDate = (dateString) => {
+        return new Date(dateString).toLocaleDateString('id-ID', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+        });
+    };
+
     return (
         <AuthenticatedLayout
             header={<h2 className="font-semibold text-xl text-gray-800 leading-tight">Detail Postingan</h2>}
@@ -34,10 +43,13 @@ export default function Show({ post }) {
                             <h1 className="text-2xl font-bold text-gray-800 mb-2">
                                 {post.title || 'Judul Tidak Tersedia'}
                             </h1>
-                            <p className="text-sm text-gray-500 mb-4">
+                            <p className="text-sm text-gray-500 mb-2">
                                 Kategori:{' '}
                                 <span className="font-medium">{post.category?.name ?? '-'}</span>
                             </p>
+                            <p className="text-xs text-gray-500 mb-2">
+                                Dibuat: {formatDate(post.created_at)}
+                             </p>
                             <p className="text-gray-700 whitespace-pre-line">
                                 {post.content || 'Konten tidak tersedia'}
                             </p>

@@ -7,6 +7,10 @@ export default function Index({ posts = { data: [] }, categories = [] }) {
     const { flash } = usePage().props;
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedCategory, setSelectedCategory] = useState('');
+    const [sortBy, setSortBy] = useState('latest');
+    const [startDate, setStartDate] = useState('');
+    const [endDate, setEndDate] = useState('');
+    const [specificDate, setSpecificDate] = useState('');
 
     // Tampilkan toast berdasarkan flash message
     useEffect(() => {
@@ -24,10 +28,37 @@ export default function Index({ posts = { data: [] }, categories = [] }) {
         }
     };
 
-    const filteredPosts = posts.data.filter((post) => {
+    // Fungsi untuk menyortir posts
+    const sortedPosts = [...posts.data].sort((a, b) => {
+        if (sortBy === 'latest') {
+            return new Date(b.created_at) - new Date(a.created_at);
+        } else if (sortBy === 'title') {
+            return a.title.localeCompare(b.title);
+        }
+        return 0;
+    });
+
+    // Fungsi untuk memformat tanggal
+    const formatDate = (dateString) => {
+        return new Date(dateString).toLocaleDateString('id-ID', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+        });
+    };
+
+    // Filter berdasarkan pencarian, kategori, dan tanggal
+    const filteredPosts = sortedPosts.filter((post) => {
         const matchesSearch = post?.title?.toLowerCase().includes(searchTerm.toLowerCase()) || false;
         const matchesCategory = !selectedCategory || post?.category_id === parseInt(selectedCategory);
-        return matchesSearch && matchesCategory;
+
+        // Filter berdasarkan rentang tanggal
+        const postDate = new Date(post.created_at);
+        const isWithinRange = !startDate || !endDate || (postDate >= new Date(startDate) && postDate <= new Date(endDate));
+        // Filter berdasarkan tanggal pasti
+        const matchesSpecificDate = !specificDate || postDate.toDateString() === new Date(specificDate).toDateString();
+
+        return matchesSearch && matchesCategory && isWithinRange && matchesSpecificDate;
     });
 
     console.log('Posts props:', posts);
@@ -69,6 +100,26 @@ export default function Index({ posts = { data: [] }, categories = [] }) {
                                 </option>
                             ))}
                         </select>
+                        <select
+                            value={sortBy}
+                            onChange={(e) => setSortBy(e.target.value)}
+                            className="p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                        >
+                            <option value="latest">Terbaru</option>
+                            <option value="title">Judul</option>
+                        </select>
+                        <input
+                            type="date"
+                            value={startDate}
+                            onChange={(e) => setStartDate(e.target.value)}
+                            className="p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                        />
+                        <input
+                            type="date"
+                            value={endDate}
+                            onChange={(e) => setEndDate(e.target.value)}
+                            className="p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                        />
                         <Link
                             href="/posts/create"
                             className="bg-blue-600 text-white px-6 py-3 rounded-lg shadow-md hover:bg-blue-700 hover:shadow-lg transition duration-200"
@@ -102,6 +153,9 @@ export default function Index({ posts = { data: [] }, categories = [] }) {
                                             </p>
                                             <p className="text-xs text-gray-500 mt-2">
                                                 Kategori: {post.category?.name ?? '-'}
+                                            </p>
+                                            <p className="text-xs text-gray-500 mt-1">
+                                                Dibuat: {formatDate(post.created_at)}
                                             </p>
                                         </div>
                                     </Link>

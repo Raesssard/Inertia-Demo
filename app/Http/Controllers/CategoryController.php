@@ -10,7 +10,7 @@ class CategoryController extends Controller
 {
     public function index()
     {
-        $categories = Category::withCount('posts')->latest()->paginate(10);
+        $categories = Category::withCount('posts')->latest()->paginate(15);
         return Inertia::render('Categories/Index', compact('categories'));
     }
 
@@ -40,13 +40,18 @@ class CategoryController extends Controller
 
     public function destroy(Category $category)
     {
-        // Cek apakah kategori digunakan oleh postingan
-        if ($category->posts()->exists()) {
-            return redirect('/categories')
-                ->with('error', 'Kategori tidak bisa dihapus karena sedang digunakan oleh postingan.');
-        }
+        try {
+            // Cek apakah kategori digunakan oleh postingan
+            if ($category->posts()->exists()) {
+                return redirect('/categories')
+                    ->with('flash', ['error' => 'Kategori tidak bisa dihapus karena sedang digunakan oleh postingan.']);
+            }
 
-        $category->delete();
-       return redirect('/categories')->with('flash', ['success' => 'Kategori berhasil dihapus.']);
+            $category->delete();
+            return redirect('/categories')->with('flash', ['success' => 'Kategori berhasil dihapus.']);
+        } catch (\Exception $e) {
+            return redirect('/categories')
+                ->with('flash', ['error' => 'Terjadi kesalahan saat menghapus kategori: ' . $e->getMessage()]);
+        }
     }
 }

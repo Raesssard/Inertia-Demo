@@ -10,10 +10,39 @@ use Illuminate\Support\Facades\Storage;
 
 class PostController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $posts = Post::with('category')->latest()->paginate(6);
+        $query = Post::with('category');
+
+        // Filter berdasarkan search (judul)
+        if ($request->search) {
+            $query->where('title', 'like', "%{$request->search}%");
+        }
+
+        // Filter berdasarkan kategori
+        if ($request->category_id) {
+            $query->where('category_id', $request->category_id);
+        }
+
+        // Filter berdasarkan rentang tanggal
+        if ($request->start_date) {
+            $query->whereDate('created_at', '>=', $request->start_date);
+        }
+        if ($request->end_date) {
+            $query->whereDate('created_at', '<=', $request->end_date);
+        }
+
+        // Sorting
+        if ($request->sort_by === 'title') {
+            $query->orderBy('title');
+        } else {
+            $query->latest();
+        }
+
+        $posts = $query->paginate(9)->withQueryString(); // withQueryString untuk mempertahankan parameter filter
+
         $categories = Category::all();
+
         return Inertia::render('Posts/Index', [
             'posts' => $posts,
             'categories' => $categories,
@@ -71,7 +100,6 @@ class PostController extends Controller
         ]);
 
         if ($request->hasFile('image')) {
-            // Hapus gambar lama
             if ($post->image && Storage::disk('public')->exists($post->image)) {
                 Storage::disk('public')->delete($post->image);
             }
@@ -86,7 +114,6 @@ class PostController extends Controller
 
     public function destroy(Post $post)
     {
-        // Hapus gambar dari storage jika ada
         if ($post->image && Storage::disk('public')->exists($post->image)) {
             Storage::disk('public')->delete($post->image);
         }

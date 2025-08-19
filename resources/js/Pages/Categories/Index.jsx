@@ -1,6 +1,6 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, router, usePage } from '@inertiajs/react';
-import { useState, useEffect } from 'react'; // Tambahkan useEffect di sini
+import { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 
 export default function Index({ categories = { data: [] } }) {
@@ -9,24 +9,20 @@ export default function Index({ categories = { data: [] } }) {
 
     // Tampilkan toast berdasarkan flash message
     useEffect(() => {
-        if (flash?.success) {
-            toast.success(flash.success, { autoClose: 3000 });
-        } else if (flash?.error) {
+        if (flash?.error) {
             toast.error(flash.error, { autoClose: 3000 });
-        } else if (flash?.message) { // Handle jika flash.message digunakan
-            toast.success(flash.message, { autoClose: 3000 });
+        } else if (flash?.success) {
+            toast.success(flash.success, { autoClose: 3000 });
         }
     }, [flash]);
 
     const handleDelete = (id) => {
         if (window.confirm('Apakah Anda yakin ingin menghapus kategori ini?')) {
             router.delete(`/categories/${id}`, {
-                onSuccess: () => {
-                    toast.success('Kategori berhasil dihapus', { autoClose: 3000 });
-                },
+                preserveScroll: true,
                 onError: (errors) => {
-                    const errorMsg = errors?.message || 'Kategori sedang digunakan';
-                    toast.error(`Gagal menghapus kategori: ${errorMsg}`, { autoClose: 3000 });
+                    const errorMsg = errors?.message || 'Gagal menghapus kategori.';
+                    toast.error(errorMsg, { autoClose: 3000 });
                 },
             });
         }
@@ -39,7 +35,6 @@ export default function Index({ categories = { data: [] } }) {
 
     // Debug props
     console.log('Categories props:', categories);
-    console.log('Flash props:', flash);
 
     // Fallback jika categories tidak valid
     if (!categories || !categories.data || !Array.isArray(categories.data)) {
@@ -84,28 +79,32 @@ export default function Index({ categories = { data: [] } }) {
                         </tr>
                     </thead>
                     <tbody>
-                        {filteredCategories.map((cat, index) => (
-                            <tr key={cat.id} className="hover:bg-gray-50 text-sm">
-                                <td className="px-4 py-2 border-b">{index + 1}</td>
-                                <td className="px-4 py-2 border-b">{cat.name}</td>
-                                <td className="px-4 py-2 border-b text-right">
-                                    <div className="flex justify-end gap-2">
-                                        <Link
-                                            href={`/categories/${cat.id}/edit`}
-                                            className="bg-yellow-500 text-white px-3 py-1 rounded text-sm hover:bg-yellow-600"
-                                        >
-                                            Edit
-                                        </Link>
-                                        <button
-                                            onClick={() => handleDelete(cat.id)}
-                                            className="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700"
-                                        >
-                                            Hapus
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                        ))}
+                        {filteredCategories.map((cat, index) => {
+                            // Hitung nomor urut global
+                            const globalIndex = ((categories.current_page - 1) * categories.per_page) + (index + 1);
+                            return (
+                                <tr key={cat.id} className="hover:bg-gray-50 text-sm">
+                                    <td className="px-4 py-2 border-b">{globalIndex}</td>
+                                    <td className="px-4 py-2 border-b">{cat.name}</td>
+                                    <td className="px-4 py-2 border-b text-right">
+                                        <div className="flex justify-end gap-2">
+                                            <Link
+                                                href={`/categories/${cat.id}/edit`}
+                                                className="bg-yellow-500 text-white px-3 py-1 rounded text-sm hover:bg-yellow-600"
+                                            >
+                                                Edit
+                                            </Link>
+                                            <button
+                                                onClick={() => handleDelete(cat.id)}
+                                                className="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700"
+                                            >
+                                                Hapus
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            );
+                        })}
                         {filteredCategories.length === 0 && (
                             <tr>
                                 <td colSpan="3" className="text-center py-4 text-gray-500">
