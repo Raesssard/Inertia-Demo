@@ -23,7 +23,7 @@ class CategoryController extends Controller
     {
         $request->validate(['name' => 'required']);
         Category::create($request->only('name'));
-        return redirect('/categories')->with('success', 'Kategori berhasil dibuat.');
+        return redirect('/categories')->with('flash', ['success' => 'Kategori berhasil dibuat.']);
     }
 
     public function edit(Category $category)
@@ -35,7 +35,7 @@ class CategoryController extends Controller
     {
         $request->validate(['name' => 'required']);
         $category->update($request->only('name'));
-        return redirect('/categories')->with('success', 'Kategori berhasil diperbarui.');
+        return redirect('/categories')->with('flash', ['success' => 'Kategori berhasil diperbarui.']);
     }
 
     public function destroy(Category $category)
@@ -47,6 +47,6 @@ class CategoryController extends Controller
         }
 
         $category->delete();
-        return redirect('/categories')->with('success', 'Kategori berhasil dihapus.');
+       return redirect('/categories')->with('flash', ['success' => 'Kategori berhasil dihapus.']);
     }
 }

@@ -1,19 +1,32 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head, Link, router } from '@inertiajs/react';
-import { useState } from 'react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
+import { useState, useEffect } from 'react'; // Tambahkan useEffect di sini
+import { toast } from 'react-toastify';
 
 export default function Index({ categories = { data: [] } }) {
+    const { flash } = usePage().props;
     const [searchTerm, setSearchTerm] = useState('');
+
+    // Tampilkan toast berdasarkan flash message
+    useEffect(() => {
+        if (flash?.success) {
+            toast.success(flash.success, { autoClose: 3000 });
+        } else if (flash?.error) {
+            toast.error(flash.error, { autoClose: 3000 });
+        } else if (flash?.message) { // Handle jika flash.message digunakan
+            toast.success(flash.message, { autoClose: 3000 });
+        }
+    }, [flash]);
 
     const handleDelete = (id) => {
         if (window.confirm('Apakah Anda yakin ingin menghapus kategori ini?')) {
             router.delete(`/categories/${id}`, {
                 onSuccess: () => {
-                    console.log('Kategori berhasil dihapus');
+                    toast.success('Kategori berhasil dihapus', { autoClose: 3000 });
                 },
                 onError: (errors) => {
-                    console.log('Gagal menghapus kategori:', errors);
-                    alert('Kategori tidak bisa dihapus karena sedang digunakan.');
+                    const errorMsg = errors?.message || 'Kategori sedang digunakan';
+                    toast.error(`Gagal menghapus kategori: ${errorMsg}`, { autoClose: 3000 });
                 },
             });
         }
@@ -26,6 +39,7 @@ export default function Index({ categories = { data: [] } }) {
 
     // Debug props
     console.log('Categories props:', categories);
+    console.log('Flash props:', flash);
 
     // Fallback jika categories tidak valid
     if (!categories || !categories.data || !Array.isArray(categories.data)) {

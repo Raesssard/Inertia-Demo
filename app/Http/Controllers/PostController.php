@@ -10,16 +10,15 @@ use Illuminate\Support\Facades\Storage;
 
 class PostController extends Controller
 {
-public function index()
-{
-    $posts = Post::with('category')->latest()->paginate(6);
-    $categories = Category::all();
-    return Inertia::render('Posts/Index', [
-        'posts' => $posts,
-        'categories' => $categories,
-        'success' => session('success'),
-    ]);
-}
+    public function index()
+    {
+        $posts = Post::with('category')->latest()->paginate(6);
+        $categories = Category::all();
+        return Inertia::render('Posts/Index', [
+            'posts' => $posts,
+            'categories' => $categories,
+        ]);
+    }
 
     public function show(Post $post)
     {
@@ -31,7 +30,6 @@ public function index()
     public function create()
     {
         $categories = Category::all();
-
         return Inertia::render('Posts/Create', [
             'categories' => $categories,
         ]);
@@ -51,14 +49,12 @@ public function index()
         }
 
         Post::create($data);
-
-        return redirect('/posts')->with('success', 'Post berhasil dibuat.');
+        return redirect('/posts')->with('flash', ['success' => 'Post berhasil dibuat.']);
     }
 
     public function edit(Post $post)
     {
         $categories = Category::all();
-
         return Inertia::render('Posts/Edit', [
             'post' => $post,
             'categories' => $categories,
@@ -85,10 +81,7 @@ public function index()
         }
 
         $post->update($data);
-
-        // Pastikan redirect membersihkan session errors
-        return redirect()->route('posts.index')->with('success', 'Post berhasil diperbarui.')
-            ->with('flash', ['status' => 'success']); // Tambah flash untuk reset state
+        return redirect()->route('posts.index')->with('flash', ['success' => 'Post berhasil diperbarui.']);
     }
 
     public function destroy(Post $post)
@@ -99,7 +92,6 @@ public function index()
         }
 
         $post->delete();
-
-        return redirect('/posts')->with('success', 'Post berhasil dihapus.');
+        return redirect('/posts')->with('flash', ['success' => 'Post berhasil dihapus.']);
     }
 }

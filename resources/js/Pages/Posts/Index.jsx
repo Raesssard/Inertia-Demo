@@ -1,32 +1,37 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head, Link, useForm, usePage } from '@inertiajs/react';
+import { Head, Link, usePage, useForm } from '@inertiajs/react';
+import { toast } from 'react-toastify';
 
-export default function Index({ posts = { data: [] }, categories = [], success }) {
-    const { delete: destroy } = useForm();
-    const { url } = usePage();
-
+export default function Index({ posts = { data: [] }, categories = [] }) {
+    const { flash } = usePage().props;
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedCategory, setSelectedCategory] = useState('');
 
+    // Tampilkan toast berdasarkan flash message
+    useEffect(() => {
+        if (flash?.success) {
+            toast.success(flash.success, { autoClose: 3000 });
+        } else if (flash?.error) {
+            toast.error(flash.error, { autoClose: 3000 });
+        }
+    }, [flash]);
+
+    const { delete: destroy } = useForm();
     const handleDelete = (id) => {
         if (confirm('Yakin ingin menghapus postingan ini?')) {
-            destroy(`/posts/${id}`, {
-                onSuccess: () => console.log('Post deleted'),
-                onError: (errors) => console.log('Delete error:', errors),
-            });
+            destroy(`/posts/${id}`);
         }
     };
 
-    // Filter postingan berdasarkan pencarian dan kategori
     const filteredPosts = posts.data.filter((post) => {
         const matchesSearch = post?.title?.toLowerCase().includes(searchTerm.toLowerCase()) || false;
         const matchesCategory = !selectedCategory || post?.category_id === parseInt(selectedCategory);
         return matchesSearch && matchesCategory;
     });
 
-    // Debug props
-    console.log('Posts props:', posts, 'Categories:', categories, 'Success:', success);
+    console.log('Posts props:', posts);
+    console.log('Flash props:', flash);
 
     if (!posts || typeof posts.data === 'undefined') {
         return (
@@ -44,12 +49,6 @@ export default function Index({ posts = { data: [] }, categories = [], success }
 
             <div className="py-12 bg-gray-100 min-h-screen">
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
-                    {success && (
-                        <div className="mb-4 p-2 bg-green-100 text-green-700 rounded">
-                            {success}
-                        </div>
-                    )}
-
                     <div className="mb-6 flex flex-wrap gap-4 items-center">
                         <input
                             type="text"
@@ -131,7 +130,6 @@ export default function Index({ posts = { data: [] }, categories = [], success }
                         </div>
                     )}
 
-                    {/* Pagination dengan pengecekan links */}
                     {posts.data.length > 0 && posts.links && (
                         <div className="mt-6 flex justify-center">
                             <nav aria-label="Pagination">
