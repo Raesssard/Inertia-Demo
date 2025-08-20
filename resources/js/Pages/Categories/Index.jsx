@@ -50,7 +50,7 @@ export default function Index({ categories = { data: [] } }) {
             <Head title="Kategori" />
 
             <div className="mt-6 p-6 bg-white shadow rounded-xl max-w-4xl mx-auto space-y-4">
-                <div className="p-4 bg-yellow-100 text-yellow-700 rounded text-sm">
+                <div className="p-4 bg-gray-100 text-white-700 rounded text-sm">
                     * Kategori yang sedang dipakai tidak bisa dihapus
                 </div>
 
@@ -82,8 +82,12 @@ export default function Index({ categories = { data: [] } }) {
                         {filteredCategories.map((cat, index) => {
                             // Hitung nomor urut global
                             const globalIndex = ((categories.current_page - 1) * categories.per_page) + (index + 1);
+                            // Tambah class berdasarkan posts_count
+                            const isUsed = cat.posts_count > 0;
+                            const rowClass = isUsed ? 'bg-gray-200' : 'hover:bg-gray-50';
+
                             return (
-                                <tr key={cat.id} className="hover:bg-gray-50 text-sm">
+                                <tr key={cat.id} className={`text-sm ${rowClass}`}>
                                     <td className="px-4 py-2 border-b">{globalIndex}</td>
                                     <td className="px-4 py-2 border-b">{cat.name}</td>
                                     <td className="px-4 py-2 border-b text-right">
@@ -96,7 +100,7 @@ export default function Index({ categories = { data: [] } }) {
                                             </Link>
                                             <button
                                                 onClick={() => handleDelete(cat.id)}
-                                                className="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700"
+                                                className="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700" // Disable hapus jika kategori dipakai
                                             >
                                                 Hapus
                                             </button>
