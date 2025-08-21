@@ -61,6 +61,16 @@ export default function Index({ posts = { data: [] }, categories = [] }) {
         return matchesSearch && matchesCategory && isWithinRange && matchesSpecificDate;
     });
 
+    // Fungsi reset filter
+    const handleResetFilter = () => {
+        setSearchTerm('');
+        setSelectedCategory('');
+        setSortBy('latest');
+        setStartDate('');
+        setEndDate('');
+        setSpecificDate('');
+    };
+
     console.log('Posts props:', posts);
     console.log('Flash props:', flash);
 
@@ -74,7 +84,17 @@ export default function Index({ posts = { data: [] }, categories = [] }) {
 
     return (
         <AuthenticatedLayout
-            header={<h2 className="font-semibold text-xl text-gray-800 leading-tight">Daftar Postingan</h2>}
+            header={
+                <div className="flex justify-between items-center w-full">
+                    <h2 className="font-semibold text-xl text-gray-800 leading-tight">Daftar Postingan</h2>
+                    <Link
+                        href="/posts/create"
+                        className="bg-blue-600 text-white px-6 py-3 rounded-lg shadow-md hover:bg-blue-700 hover:shadow-lg transition duration-200"
+                    >
+                        + Buat Postingan
+                    </Link>
+                </div>
+            }
         >
             <Head title="Posts" />
 
@@ -120,12 +140,12 @@ export default function Index({ posts = { data: [] }, categories = [] }) {
                             onChange={(e) => setEndDate(e.target.value)}
                             className="p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                         />
-                        <Link
-                            href="/posts/create"
-                            className="bg-blue-600 text-white px-6 py-3 rounded-lg shadow-md hover:bg-blue-700 hover:shadow-lg transition duration-200"
+                        <button
+                            onClick={handleResetFilter}
+                            className="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition duration-200"
                         >
-                            + Buat Postingan
-                        </Link>
+                            Reset Filter
+                        </button>
                     </div>
 
                     {filteredPosts.length > 0 ? (
