@@ -63,14 +63,16 @@ export default function Index({ posts = { data: [] }, categories = [] }) {
         });
     };
 
-    // Fungsi reset filter
-    const handleResetFilter = () => {
+    // Fungsi Set filter
+    const handleSetFilter = () => {
         reset();
         get('/posts', {
             preserveState: true,
             preserveScroll: true,
         });
     };
+
+    
 
     console.log('Posts props:', posts);
     console.log('Filters from props:', filters);
@@ -151,7 +153,7 @@ export default function Index({ posts = { data: [] }, categories = [] }) {
                             className="p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                         />
                         <button
-                            onClick={handleResetFilter}
+                            onClick={handleSetFilter}
                             className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition duration-200"
                         >
                            Search
