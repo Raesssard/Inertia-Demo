@@ -64,7 +64,7 @@ export default function Index({ categories = { data: [] } }) {
                     />
                     <Link
                         href="/categories/create"
-                        className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm"
+                        className="px-4 py-2 bg-blue-300 text-white rounded hover:bg-blue-700 text-sm"
                     >
                         + Tambah Kategori
                     </Link>

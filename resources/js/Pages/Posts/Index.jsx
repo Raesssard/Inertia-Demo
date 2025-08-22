@@ -89,7 +89,7 @@ export default function Index({ posts = { data: [] }, categories = [] }) {
                     <h2 className="font-semibold text-xl text-gray-800 leading-tight">Daftar Postingan</h2>
                     <Link
                         href="/posts/create"
-                        className="bg-blue-600 text-white px-6 py-3 rounded-lg shadow-md hover:bg-blue-700 hover:shadow-lg transition duration-200"
+                        className="bg-blue-300 text-white px-6 py-3 rounded-lg shadow-md hover:bg-blue-700 hover:shadow-lg transition duration-200"
                     >
                         + Buat Postingan
                     </Link>
