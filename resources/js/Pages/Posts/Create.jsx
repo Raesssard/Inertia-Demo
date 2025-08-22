@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout'; // Tambah layout konsisten
+import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, useForm, Link } from '@inertiajs/react';
 
 export default function Create({ categories }) {
@@ -8,9 +8,11 @@ export default function Create({ categories }) {
         content: '',
         category_id: '',
         image: null,
+        new_category_name: '', // State untuk nama kategori baru
     });
 
     const [preview, setPreview] = useState(null);
+    const [showNewCategoryInput, setShowNewCategoryInput] = useState(false);
 
     const handleImageChange = (e) => {
         const file = e.target.files[0];
@@ -18,16 +20,16 @@ export default function Create({ categories }) {
         if (file) {
             setPreview(URL.createObjectURL(file));
         } else {
-            setPreview(null); // Reset preview kalau file dihapus
+            setPreview(null);
         }
     };
 
     const handleSubmit = (e) => {
         e.preventDefault();
         post('/posts', {
-            forceFormData: true, // Pastikan file dikirim dengan benar
-            onSuccess: () => {}, // Placeholder untuk callback
-            onError: () => {},  // Placeholder untuk callback
+            forceFormData: true,
+            onSuccess: () => {},
+            onError: (errors) => {},
         });
     };
 
@@ -71,21 +73,42 @@ export default function Create({ categories }) {
                             {errors.content && <div className="text-red-600 text-sm mt-1">{errors.content}</div>}
                         </div>
 
-                                                <div>
+                        <div>
                             <label className="block mb-1 font-semibold text-gray-700">Kategori</label>
-                            <select
-                                value={data.category_id}
-                                onChange={(e) => setData('category_id', e.target.value)}
-                                className="w-full border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-green-500"
-                            >
-                                <option value="">-- Pilih Kategori --</option>
-                                {categories.map((category) => (
-                                    <option key={category.id} value={category.id}>
-                                        {category.name}
-                                    </option>
-                                ))}
-                            </select>
+                            <div className="relative">
+                                <select
+                                    value={data.category_id}
+                                    onChange={(e) => {
+                                        if (e.target.value === 'new') {
+                                            setShowNewCategoryInput(true);
+                                            setData('category_id', '');
+                                        } else {
+                                            setShowNewCategoryInput(false);
+                                            setData('category_id', e.target.value);
+                                        }
+                                    }}
+                                    className="w-full border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-green-500"
+                                >
+                                    <option value="">-- Pilih Kategori --</option>
+                                    {categories.map((category) => (
+                                        <option key={category.id} value={category.id}>
+                                            {category.name}
+                                        </option>
+                                    ))}
+                                    <option value="new">+ Tambah Kategori Baru</option>
+                                </select>
+                                {showNewCategoryInput && (
+                                    <input
+                                        type="text"
+                                        value={data.new_category_name}
+                                        onChange={(e) => setData('new_category_name', e.target.value)}
+                                        placeholder="Masukkan nama kategori baru..."
+                                        className="w-full mt-2 border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-green-500"
+                                    />
+                                )}
+                            </div>
                             {errors.category_id && <div className="text-red-600 text-sm mt-1">{errors.category_id}</div>}
+                            {errors.new_category_name && <div className="text-red-600 text-sm mt-1">{errors.new_category_name}</div>}
                         </div>
 
                         <div>

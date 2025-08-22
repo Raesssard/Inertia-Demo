@@ -7,39 +7,36 @@ use App\Models\Category;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Auth;
 
 class PostController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Post::with('category');
+        $query = Post::with(['category', 'user']);
 
-        // Filter berdasarkan search (judul)
-        if ($request->search) {
+        if ($request->filled('search')) {
             $query->where('title', 'like', "%{$request->search}%");
         }
 
-        // Filter berdasarkan kategori
-        if ($request->category_id) {
+        if ($request->filled('category_id')) {
             $query->where('category_id', $request->category_id);
         }
 
-        // Filter berdasarkan rentang tanggal
-        if ($request->start_date) {
+        if ($request->filled('start_date')) {
             $query->whereDate('created_at', '>=', $request->start_date);
         }
-        if ($request->end_date) {
+        if ($request->filled('end_date')) {
             $query->whereDate('created_at', '<=', $request->end_date);
         }
 
-        // Sorting
-        if ($request->sort_by === 'title') {
+        if ($request->filled('sort_by') && $request->sort_by === 'title') {
             $query->orderBy('title');
         } else {
             $query->latest();
         }
 
-        $posts = $query->paginate(9)->withQueryString(); // withQueryString untuk mempertahankan parameter filter
+        $posts = $query->paginate(9)->withQueryString();
 
         $categories = Category::all();
 
@@ -52,7 +49,7 @@ class PostController extends Controller
     public function show(Post $post)
     {
         return Inertia::render('Posts/Show', [
-            'post' => $post->load('category'),
+            'post' => $post->load(['category', 'user']),
         ]);
     }
 
@@ -71,7 +68,16 @@ class PostController extends Controller
             'content' => 'required|string',
             'category_id' => 'nullable|exists:categories,id',
             'image' => 'nullable|image|mimes:jpeg,jpg,png,webp|max:2048',
+            'new_category_name' => 'nullable|string|max:255', // Validasi untuk kategori baru
         ]);
+
+        $data['user_id'] = auth::id();
+
+        // Jika ada new_category_name, buat kategori baru
+        if ($request->filled('new_category_name')) {
+            $category = Category::create(['name' => $request->new_category_name]);
+            $data['category_id'] = $category->id; // Set category_id ke ID kategori baru
+        }
 
         if ($request->hasFile('image')) {
             $data['image'] = $request->file('image')->store('posts', 'public');
@@ -83,6 +89,10 @@ class PostController extends Controller
 
     public function edit(Post $post)
     {
+        if (auth::id() !== $post->user_id) {
+            return redirect('/posts')->with('flash', ['error' => 'Anda tidak memiliki izin untuk mengedit postingan ini.']);
+        }
+
         $categories = Category::all();
         return Inertia::render('Posts/Edit', [
             'post' => $post,
@@ -92,6 +102,10 @@ class PostController extends Controller
 
     public function update(Request $request, Post $post)
     {
+        if (auth::id() !== $post->user_id) {
+            return redirect('/posts')->with('flash', ['error' => 'Anda tidak memiliki izin untuk mengedit postingan ini.']);
+        }
+
         $data = $request->validate([
             'title' => 'required|string|max:255',
             'content' => 'required|string',
@@ -114,6 +128,10 @@ class PostController extends Controller
 
     public function destroy(Post $post)
     {
+        if (auth::id() !== $post->user_id) {
+            return redirect('/posts')->with('flash', ['error' => 'Anda tidak memiliki izin untuk menghapus postingan ini.']);
+        }
+
         if ($post->image && Storage::disk('public')->exists($post->image)) {
             Storage::disk('public')->delete($post->image);
         }

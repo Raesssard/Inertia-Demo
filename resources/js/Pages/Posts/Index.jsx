@@ -4,7 +4,7 @@ import { Head, Link, usePage, useForm } from '@inertiajs/react';
 import { toast } from 'react-toastify';
 
 export default function Index({ posts = { data: [] }, categories = [] }) {
-    const { flash } = usePage().props;
+    const { flash, auth } = usePage().props; // Ambil data auth dari props
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedCategory, setSelectedCategory] = useState('');
     const [sortBy, setSortBy] = useState('latest');
@@ -73,6 +73,7 @@ export default function Index({ posts = { data: [] }, categories = [] }) {
 
     console.log('Posts props:', posts);
     console.log('Flash props:', flash);
+    console.log('Auth props:', auth); // Debug auth data
 
     if (!posts || typeof posts.data === 'undefined') {
         return (
@@ -100,6 +101,9 @@ export default function Index({ posts = { data: [] }, categories = [] }) {
 
             <div className="py-12 bg-gray-100 min-h-screen">
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
+                    <div className="p-4 bg-gray-200 text-white-700 rounded text-sm mb-5">
+                        * Fitur Filter masih dalam tahap pengembangan jadi post yang berada di page berbeda tidak ikut ter filter dan juga Filter nya tidak terbawa ke halaman selanjutnya, harap tunggu update terbaru dan saya nfelisx akan segera coba menyelesaikan masalah Filter ini terima kasih.
+                    </div>
                     <div className="mb-6 flex flex-wrap gap-4 items-center">
                         <input
                             type="text"
@@ -177,22 +181,29 @@ export default function Index({ posts = { data: [] }, categories = [] }) {
                                             <p className="text-xs text-gray-500 mt-1">
                                                 Dibuat: {formatDate(post.created_at)}
                                             </p>
+                                            <p className="text-xs text-gray-500 mt-1">
+                                                Oleh: {post.user?.name ?? 'Pengguna Tidak Diketahui'}
+                                            </p>
                                         </div>
                                     </Link>
                                     <div className="mt-auto px-4 pb-4">
                                         <div className="flex gap-2">
-                                            <Link
-                                                href={`/posts/${post.id}/edit`}
-                                                className="bg-yellow-500 text-white px-3 py-1 rounded text-sm hover:bg-yellow-600 transition"
-                                            >
-                                                Edit
-                                            </Link>
-                                            <button
-                                                onClick={() => handleDelete(post.id)}
-                                                className="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700 transition"
-                                            >
-                                                Hapus
-                                            </button>
+                                            {auth.user?.id === post.user_id && (
+                                                <>
+                                                    <Link
+                                                        href={`/posts/${post.id}/edit`}
+                                                        className="bg-yellow-500 text-white px-3 py-1 rounded text-sm hover:bg-yellow-600 transition"
+                                                    >
+                                                        Edit
+                                                    </Link>
+                                                    <button
+                                                        onClick={() => handleDelete(post.id)}
+                                                        className="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700 transition"
+                                                    >
+                                                        Hapus
+                                                    </button>
+                                                </>
+                                            )}
                                         </div>
                                     </div>
                                 </div>

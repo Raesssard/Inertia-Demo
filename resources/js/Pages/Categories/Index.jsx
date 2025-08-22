@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 
 export default function Index({ categories = { data: [] } }) {
-    const { flash } = usePage().props;
+    const { flash, auth } = usePage().props; // Tambah auth untuk cek user ID
     const [searchTerm, setSearchTerm] = useState('');
 
     // Tampilkan toast berdasarkan flash message
@@ -35,6 +35,7 @@ export default function Index({ categories = { data: [] } }) {
 
     // Debug props
     console.log('Categories props:', categories);
+    console.log('Auth props:', auth); // Debug auth data
 
     // Fallback jika categories tidak valid
     if (!categories || !categories.data || !Array.isArray(categories.data)) {
@@ -51,7 +52,10 @@ export default function Index({ categories = { data: [] } }) {
 
             <div className="mt-6 p-6 bg-white shadow rounded-xl max-w-4xl mx-auto space-y-4">
                 <div className="p-4 bg-gray-100 text-white-700 rounded text-sm">
-                    * Kategori yang sedang dipakai tidak bisa dihapus
+                    * Kategori yang sedang dipakai tidak bisa diedit
+                </div>
+                <div className="p-4 bg-gray-100 text-white-700 rounded text-sm">
+                    * Hanya pembuat Situs yang dapat Edit dan Hapus Kategori, jika ada usulan kategori Hubungi "nfelisx@gmail.com"
                 </div>
 
                 <div className="flex flex-col sm:flex-row justify-between items-center mb-4 gap-4">
@@ -92,18 +96,45 @@ export default function Index({ categories = { data: [] } }) {
                                     <td className="px-4 py-2 border-b">{cat.name}</td>
                                     <td className="px-4 py-2 border-b text-right">
                                         <div className="flex justify-end gap-2">
-                                            <Link
-                                                href={`/categories/${cat.id}/edit`}
-                                                className="bg-yellow-500 text-white px-3 py-1 rounded text-sm hover:bg-yellow-600"
-                                            >
-                                                Edit
-                                            </Link>
-                                            <button
-                                                onClick={() => handleDelete(cat.id)}
-                                                className="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700" // Disable hapus jika kategori dipakai
-                                            >
-                                                Hapus
-                                            </button>
+                                            {!isUsed ? (
+                                                auth.user?.id === 1 ? (
+                                                    <Link
+                                                        href={`/categories/${cat.id}/edit`}
+                                                        className="bg-yellow-500 text-white px-3 py-1 rounded text-sm hover:bg-yellow-600"
+                                                    >
+                                                        Edit
+                                                    </Link>
+                                                ) : (
+                                                    <button
+                                                        className="bg-yellow-500 text-white px-3 py-1 rounded text-sm opacity-50 cursor-not-allowed"
+                                                        disabled
+                                                    >
+                                                        Edit
+                                                    </button>
+                                                )
+                                            ) : (
+                                                <button
+                                                    className="bg-yellow-500 text-white px-3 py-1 rounded text-sm opacity-50 cursor-not-allowed"
+                                                    disabled
+                                                >
+                                                    Edit
+                                                </button>
+                                            )}
+                                            {auth.user?.id === 1 ? (
+                                                <button
+                                                    onClick={() => handleDelete(cat.id)}
+                                                    className="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700"
+                                                >
+                                                    Hapus
+                                                </button>
+                                            ) : (
+                                                <button
+                                                    className="bg-red-600 text-white px-3 py-1 rounded text-sm opacity-50 cursor-not-allowed"
+                                                    disabled
+                                                >
+                                                    Hapus
+                                                </button>
+                                            )}
                                         </div>
                                     </td>
                                 </tr>

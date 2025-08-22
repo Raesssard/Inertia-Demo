@@ -12,7 +12,7 @@ export default function Show({ post }) {
         );
     }
 
-        // Fungsi untuk memformat tanggal
+    // Fungsi untuk memformat tanggal
     const formatDate = (dateString) => {
         return new Date(dateString).toLocaleDateString('id-ID', {
             year: 'numeric',
@@ -34,8 +34,8 @@ export default function Show({ post }) {
                             <img
                                 src={`/storage/${post.image}`}
                                 alt={post.title}
-                                className="w-full h-96 object-contain bg-gray-200" // Ganti bg-black jadi gray-200
-                                loading="lazy" // Optimasi lazy loading
+                                className="w-full h-96 object-contain bg-gray-200"
+                                loading="lazy"
                             />
                         )}
 
@@ -49,7 +49,10 @@ export default function Show({ post }) {
                             </p>
                             <p className="text-xs text-gray-500 mb-2">
                                 Dibuat: {formatDate(post.created_at)}
-                             </p>
+                            </p>
+                            <p className="text-xs text-gray-500 mb-2">
+                                Oleh: {post.user?.name ?? 'Pengguna Tidak Diketahui'}
+                            </p>
                             <p className="text-gray-700 whitespace-pre-line">
                                 {post.content || 'Konten tidak tersedia'}
                             </p>

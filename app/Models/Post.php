@@ -7,20 +7,21 @@ use Illuminate\Database\Eloquent\Model;
 
 class Post extends Model
 {
-    use HasFactory;
-
     protected $fillable = [
-    'title',
-    'content',
-    'category_id',
-    'image',
-];
+        'title',
+        'content',
+        'category_id',
+        'image',
+        'user_id', // Pastikan kolom ini ada
+    ];
 
+    public function category()
+    {
+        return $this->belongsTo(Category::class);
+    }
 
-public function category()
-{
-    return $this->belongsTo(Category::class);
-}
-
-
+    public function user()
+    {
+        return $this->belongsTo(User::class); // Asumsi model User sudah ada
+    }
 }
