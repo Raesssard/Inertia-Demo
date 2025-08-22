@@ -55,7 +55,7 @@ export default function Index({ categories = { data: [] } }) {
                     * Kategori yang sedang dipakai tidak bisa diedit
                 </div>
                 <div className="p-4 bg-gray-100 text-white-700 rounded text-sm">
-                    * Hanya pembuat Situs yang dapat Edit dan Hapus Kategori, jika ada usulan kategori Hubungi "nfelisx@gmail.com"
+                    * Hanya pembuat Situs yang dapat Edit dan Hapus Kategori, jika ada usulan Hubungi "nfelisx@gmail.com"
                 </div>
 
                 <div className="flex flex-col sm:flex-row justify-between items-center mb-4 gap-4">

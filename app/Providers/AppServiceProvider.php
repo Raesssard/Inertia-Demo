@@ -29,7 +29,12 @@ class AppServiceProvider extends ServiceProvider
                     'error' => Session::get('flash.error') ?? Session::get('error'),
                 ];
             },
+            'filters' => function () {
+                $filters = request()->query();
+                return $filters ?: request()->all() ?: [];
+            },
         ]);
+
         Vite::prefetch(concurrency: 3);
     }
 }

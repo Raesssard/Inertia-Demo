@@ -36,7 +36,7 @@ class PostController extends Controller
             $query->latest();
         }
 
-        $posts = $query->paginate(9)->withQueryString();
+        $posts = $query->paginate(6)->withQueryString();
 
         $categories = Category::all();
 
@@ -71,7 +71,7 @@ class PostController extends Controller
             'new_category_name' => 'nullable|string|max:255', // Validasi untuk kategori baru
         ]);
 
-        $data['user_id'] = auth::id();
+        $data['user_id'] = Auth::id();
 
         // Jika ada new_category_name, buat kategori baru
         if ($request->filled('new_category_name')) {
@@ -89,7 +89,7 @@ class PostController extends Controller
 
     public function edit(Post $post)
     {
-        if (auth::id() !== $post->user_id) {
+        if (Auth::id() !== $post->user_id) {
             return redirect('/posts')->with('flash', ['error' => 'Anda tidak memiliki izin untuk mengedit postingan ini.']);
         }
 
@@ -102,7 +102,7 @@ class PostController extends Controller
 
     public function update(Request $request, Post $post)
     {
-        if (auth::id() !== $post->user_id) {
+        if (Auth::id() !== $post->user_id) {
             return redirect('/posts')->with('flash', ['error' => 'Anda tidak memiliki izin untuk mengedit postingan ini.']);
         }
 
@@ -128,7 +128,7 @@ class PostController extends Controller
 
     public function destroy(Post $post)
     {
-        if (auth::id() !== $post->user_id) {
+        if (Auth::id() !== $post->user_id) {
             return redirect('/posts')->with('flash', ['error' => 'Anda tidak memiliki izin untuk menghapus postingan ini.']);
         }
 

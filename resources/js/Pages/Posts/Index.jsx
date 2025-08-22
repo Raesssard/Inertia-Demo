@@ -1,16 +1,28 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, usePage, useForm } from '@inertiajs/react';
 import { toast } from 'react-toastify';
 
 export default function Index({ posts = { data: [] }, categories = [] }) {
-    const { flash, auth } = usePage().props; // Ambil data auth dari props
-    const [searchTerm, setSearchTerm] = useState('');
-    const [selectedCategory, setSelectedCategory] = useState('');
-    const [sortBy, setSortBy] = useState('latest');
-    const [startDate, setStartDate] = useState('');
-    const [endDate, setEndDate] = useState('');
-    const [specificDate, setSpecificDate] = useState('');
+    const { flash, auth, filters } = usePage().props;
+    const { data: formData, setData, get, reset } = useForm({
+        search: filters.search || '',
+        category_id: filters.category_id || '',
+        sort_by: filters.sort_by || 'latest',
+        start_date: filters.start_date || '',
+        end_date: filters.end_date || '',
+    });
+
+    // Sinkronkan state dengan filters saat halaman dimuat atau berubah
+    useEffect(() => {
+        setData({
+            search: filters.search || '',
+            category_id: filters.category_id || '',
+            sort_by: filters.sort_by || 'latest',
+            start_date: filters.start_date || '',
+            end_date: filters.end_date || '',
+        });
+    }, [filters]);
 
     // Tampilkan toast berdasarkan flash message
     useEffect(() => {
@@ -28,16 +40,6 @@ export default function Index({ posts = { data: [] }, categories = [] }) {
         }
     };
 
-    // Fungsi untuk menyortir posts
-    const sortedPosts = [...posts.data].sort((a, b) => {
-        if (sortBy === 'latest') {
-            return new Date(b.created_at) - new Date(a.created_at);
-        } else if (sortBy === 'title') {
-            return a.title.localeCompare(b.title);
-        }
-        return 0;
-    });
-
     // Fungsi untuk memformat tanggal
     const formatDate = (dateString) => {
         return new Date(dateString).toLocaleDateString('id-ID', {
@@ -47,33 +49,32 @@ export default function Index({ posts = { data: [] }, categories = [] }) {
         });
     };
 
-    // Filter berdasarkan pencarian, kategori, dan tanggal
-    const filteredPosts = sortedPosts.filter((post) => {
-        const matchesSearch = post?.title?.toLowerCase().includes(searchTerm.toLowerCase()) || false;
-        const matchesCategory = !selectedCategory || post?.category_id === parseInt(selectedCategory);
-
-        // Filter berdasarkan rentang tanggal
-        const postDate = new Date(post.created_at);
-        const isWithinRange = !startDate || !endDate || (postDate >= new Date(startDate) && postDate <= new Date(endDate));
-        // Filter berdasarkan tanggal pasti
-        const matchesSpecificDate = !specificDate || postDate.toDateString() === new Date(specificDate).toDateString();
-
-        return matchesSearch && matchesCategory && isWithinRange && matchesSpecificDate;
-    });
+    // Handle filter change
+    const handleFilterChange = (e) => {
+        const { name, value } = e.target;
+        setData(name, value, () => {
+            get('/posts', {
+                preserveState: true,
+                preserveScroll: true,
+                data: { ...formData, [name]: value }, // Pastikan parameter dikirim
+            }, {
+                headers: { 'X-Inertia': true }, // Pastikan Inertia mengenali request
+            });
+        });
+    };
 
     // Fungsi reset filter
     const handleResetFilter = () => {
-        setSearchTerm('');
-        setSelectedCategory('');
-        setSortBy('latest');
-        setStartDate('');
-        setEndDate('');
-        setSpecificDate('');
+        reset();
+        get('/posts', {
+            preserveState: true,
+            preserveScroll: true,
+        });
     };
 
     console.log('Posts props:', posts);
-    console.log('Flash props:', flash);
-    console.log('Auth props:', auth); // Debug auth data
+    console.log('Filters from props:', filters);
+    console.log('Form Data:', formData);
 
     if (!posts || typeof posts.data === 'undefined') {
         return (
@@ -102,19 +103,21 @@ export default function Index({ posts = { data: [] }, categories = [] }) {
             <div className="py-12 bg-gray-100 min-h-screen">
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
                     <div className="p-4 bg-gray-200 text-white-700 rounded text-sm mb-5">
-                        * Fitur Filter masih dalam tahap pengembangan jadi post yang berada di page berbeda tidak ikut ter filter dan juga Filter nya tidak terbawa ke halaman selanjutnya, harap tunggu update terbaru dan saya nfelisx akan segera coba menyelesaikan masalah Filter ini terima kasih.
+                        * Fitur Filter sedang dalam pengembangan, harap tunggu update terbaru.
                     </div>
                     <div className="mb-6 flex flex-wrap gap-4 items-center">
                         <input
                             type="text"
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
+                            name="search"
+                            value={formData.search}
+                            onChange={handleFilterChange}
                             placeholder="Cari berdasarkan judul..."
                             className="flex-1 p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                         />
                         <select
-                            value={selectedCategory}
-                            onChange={(e) => setSelectedCategory(e.target.value)}
+                            name="category_id"
+                            value={formData.category_id}
+                            onChange={handleFilterChange}
                             className="flex-1 p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                         >
                             <option value="">Semua Kategori</option>
@@ -125,8 +128,9 @@ export default function Index({ posts = { data: [] }, categories = [] }) {
                             ))}
                         </select>
                         <select
-                            value={sortBy}
-                            onChange={(e) => setSortBy(e.target.value)}
+                            name="sort_by"
+                            value={formData.sort_by}
+                            onChange={handleFilterChange}
                             className="p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                         >
                             <option value="latest">Terbaru</option>
@@ -134,27 +138,29 @@ export default function Index({ posts = { data: [] }, categories = [] }) {
                         </select>
                         <input
                             type="date"
-                            value={startDate}
-                            onChange={(e) => setStartDate(e.target.value)}
+                            name="start_date"
+                            value={formData.start_date}
+                            onChange={handleFilterChange}
                             className="p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                         />
                         <input
                             type="date"
-                            value={endDate}
-                            onChange={(e) => setEndDate(e.target.value)}
+                            name="end_date"
+                            value={formData.end_date}
+                            onChange={handleFilterChange}
                             className="p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                         />
                         <button
                             onClick={handleResetFilter}
-                            className="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition duration-200"
+                            className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition duration-200"
                         >
-                            Reset Filter
+                           Search
                         </button>
                     </div>
 
-                    {filteredPosts.length > 0 ? (
+                    {posts.data.length > 0 ? (
                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-                            {filteredPosts.map((post) => (
+                            {posts.data.map((post) => (
                                 <div
                                     key={post.id}
                                     className="bg-white rounded shadow hover:shadow-lg transition-all duration-200 overflow-hidden flex flex-col justify-between h-full"
