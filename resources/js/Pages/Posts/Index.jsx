@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, usePage, useForm } from '@inertiajs/react';
 import { toast } from 'react-toastify';
@@ -49,21 +49,21 @@ export default function Index({ posts = { data: [] }, categories = [] }) {
         });
     };
 
-    // Handle filter change
-    const handleFilterChange = (e) => {
+    // Handle perubahan input
+    const handleInputChange = (e) => {
         const { name, value } = e.target;
         setData(name, value, () => {
             get('/posts', {
                 preserveState: true,
                 preserveScroll: true,
-                data: { ...formData, [name]: value }, // Pastikan parameter dikirim
+                data: { ...formData, [name]: value },
             }, {
-                headers: { 'X-Inertia': true }, // Pastikan Inertia mengenali request
+                headers: { 'X-Inertia': true },
             });
         });
     };
 
-    // Fungsi untuk set filter (search)
+    // Fungsi untuk terapkan filter
     const handleSetFilter = () => {
         get('/posts', {
             preserveState: true,
@@ -83,13 +83,6 @@ export default function Index({ posts = { data: [] }, categories = [] }) {
             get('/posts', {
                 preserveState: true,
                 preserveScroll: true,
-                data: { // Eksplisit kirim state kosong
-                    search: '',
-                    category_id: '',
-                    sort_by: 'latest',
-                    start_date: '',
-                    end_date: '',
-                },
             });
         });
     };
@@ -125,21 +118,21 @@ export default function Index({ posts = { data: [] }, categories = [] }) {
             <div className="py-12 bg-gray-100 min-h-screen">
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
                     <div className="p-4 bg-gray-200 text-white-700 rounded text-sm mb-5">
-                        * Jika ada usulan lainnya tentang fitur atau perbaikan, silakan hubungi admin.
+                        * Fitur Filter sedang dalam pengembangan, harap tunggu update terbaru.
                     </div>
                     <div className="mb-6 flex flex-wrap gap-4 items-center">
                         <input
                             type="text"
                             name="search"
                             value={formData.search}
-                            onChange={handleFilterChange}
+                            onChange={handleInputChange}
                             placeholder="Cari berdasarkan judul..."
                             className="flex-1 p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                         />
                         <select
                             name="category_id"
                             value={formData.category_id}
-                            onChange={handleFilterChange}
+                            onChange={handleInputChange}
                             className="flex-1 p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                         >
                             <option value="">Semua Kategori</option>
@@ -152,7 +145,7 @@ export default function Index({ posts = { data: [] }, categories = [] }) {
                         <select
                             name="sort_by"
                             value={formData.sort_by}
-                            onChange={handleFilterChange}
+                            onChange={handleInputChange}
                             className="p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                         >
                             <option value="latest">Terbaru</option>
@@ -162,21 +155,21 @@ export default function Index({ posts = { data: [] }, categories = [] }) {
                             type="date"
                             name="start_date"
                             value={formData.start_date}
-                            onChange={handleFilterChange}
+                            onChange={handleInputChange}
                             className="p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                         />
                         <input
                             type="date"
                             name="end_date"
                             value={formData.end_date}
-                            onChange={handleFilterChange}
+                            onChange={handleInputChange}
                             className="p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                         />
                         <button
                             onClick={handleSetFilter}
                             className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition duration-200"
                         >
-                            Set
+                            Search
                         </button>
                         <button
                             onClick={handleResetFilter}
@@ -193,7 +186,10 @@ export default function Index({ posts = { data: [] }, categories = [] }) {
                                     key={post.id}
                                     className="bg-white rounded shadow hover:shadow-lg transition-all duration-200 overflow-hidden flex flex-col justify-between h-full"
                                 >
-                                    <Link href={`/posts/${post.id}`} className="flex-1">
+                                    <Link
+                                        href={`/posts/${post.id}?page=${posts.current_page}`}
+                                        className="flex-1"
+                                    >
                                         {post.image && (
                                             <img
                                                 src={`/storage/${post.image}`}
@@ -225,7 +221,7 @@ export default function Index({ posts = { data: [] }, categories = [] }) {
                                             {auth.user?.id === post.user_id && (
                                                 <>
                                                     <Link
-                                                        href={`/posts/${post.id}/edit`}
+                                                        href={`/posts/${post.id}/edit?page=${posts.current_page}`}
                                                         className="bg-yellow-500 text-white px-3 py-1 rounded text-sm hover:bg-yellow-600 transition"
                                                     >
                                                         Edit

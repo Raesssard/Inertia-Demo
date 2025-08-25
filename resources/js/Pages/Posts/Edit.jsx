@@ -5,7 +5,6 @@ import { Head, useForm, usePage, Link } from '@inertiajs/react';
 export default function Edit({ post, categories, page }) {
     const { errors } = usePage().props;
 
-    // Fallback jika post atau categories undefined
     if (!post || !categories) {
         return (
             <AuthenticatedLayout>
@@ -39,13 +38,11 @@ export default function Edit({ post, categories, page }) {
         submit(`/posts/${post.id}`, {
             forceFormData: true,
             onSuccess: () => {
-                // Kembali ke halaman sebelumnya setelah sukses
                 window.location.href = page ? `/posts?page=${page}` : '/posts';
             },
         });
     };
 
-    // URL kembali ke halaman sebelumnya dengan parameter page
     const backUrl = page ? `/posts?page=${page}` : '/posts';
 
     return (

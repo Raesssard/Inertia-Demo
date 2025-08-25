@@ -26,7 +26,6 @@ class PostController extends Controller
         if ($request->filled('start_date')) {
             $query->whereDate('created_at', '>=', $request->start_date);
         }
-
         if ($request->filled('end_date')) {
             $query->whereDate('created_at', '<=', $request->end_date);
         }
@@ -38,21 +37,20 @@ class PostController extends Controller
         }
 
         $posts = $query->paginate(6)->withQueryString();
+
         $categories = Category::all();
 
         return Inertia::render('Posts/Index', [
             'posts' => $posts,
             'categories' => $categories,
-            'filters' => $request->only(['search', 'category_id', 'sort_by', 'start_date', 'end_date']), // Tambah filters
-            'page' => $request->input('page', 1), // Tambah page ke props
         ]);
     }
 
-    public function show(Post $post)
+    public function show(Post $post, Request $request)
     {
         return Inertia::render('Posts/Show', [
             'post' => $post->load(['category', 'user']),
-            'page' => request()->input('page', 1), // Pastikan page dikirim
+            'page' => $request->query('page', 1),
         ]);
     }
 
@@ -89,7 +87,7 @@ class PostController extends Controller
         return redirect('/posts')->with('flash', ['success' => 'Post berhasil dibuat.']);
     }
 
-    public function edit(Post $post)
+    public function edit(Post $post, Request $request)
     {
         if (Auth::id() !== $post->user_id) {
             return redirect('/posts')->with('flash', ['error' => 'Anda tidak memiliki izin untuk mengedit postingan ini.']);
@@ -99,7 +97,7 @@ class PostController extends Controller
         return Inertia::render('Posts/Edit', [
             'post' => $post,
             'categories' => $categories,
-            'page' => request()->input('page', 1), // Pastikan page dikirim
+            'page' => $request->query('page', 1),
         ]);
     }
 
@@ -126,9 +124,7 @@ class PostController extends Controller
         }
 
         $post->update($data);
-        // Redirect dengan page dari request
-        $page = $request->input('page', 1);
-        return redirect()->route('posts.index', ['page' => $page])->with('flash', ['success' => 'Post berhasil diperbarui.']);
+        return redirect()->route('posts.index', ['page' => $request->query('page', 1)])->with('flash', ['success' => 'Post berhasil diperbarui.']);
     }
 
     public function destroy(Post $post)

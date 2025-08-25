@@ -3,7 +3,6 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, usePage } from '@inertiajs/react';
 
 export default function Show({ post, page }) {
-    // Fallback jika post undefined
     if (!post) {
         return (
             <AuthenticatedLayout>
@@ -12,7 +11,6 @@ export default function Show({ post, page }) {
         );
     }
 
-    // Fungsi untuk memformat tanggal
     const formatDate = (dateString) => {
         return new Date(dateString).toLocaleDateString('id-ID', {
             year: 'numeric',
@@ -21,7 +19,6 @@ export default function Show({ post, page }) {
         });
     };
 
-    // URL kembali ke halaman sebelumnya dengan parameter page
     const backUrl = page ? `/posts?page=${page}` : '/posts';
 
     return (
