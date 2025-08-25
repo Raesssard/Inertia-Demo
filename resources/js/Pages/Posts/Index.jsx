@@ -63,16 +63,36 @@ export default function Index({ posts = { data: [] }, categories = [] }) {
         });
     };
 
-    // Fungsi Set filter
+    // Fungsi untuk set filter (search)
     const handleSetFilter = () => {
-        reset();
         get('/posts', {
             preserveState: true,
             preserveScroll: true,
         });
     };
 
-    
+    // Fungsi reset filter
+    const handleResetFilter = () => {
+        setData({
+            search: '',
+            category_id: '',
+            sort_by: 'latest',
+            start_date: '',
+            end_date: '',
+        }, () => {
+            get('/posts', {
+                preserveState: true,
+                preserveScroll: true,
+                data: { // Eksplisit kirim state kosong
+                    search: '',
+                    category_id: '',
+                    sort_by: 'latest',
+                    start_date: '',
+                    end_date: '',
+                },
+            });
+        });
+    };
 
     console.log('Posts props:', posts);
     console.log('Filters from props:', filters);
@@ -105,7 +125,7 @@ export default function Index({ posts = { data: [] }, categories = [] }) {
             <div className="py-12 bg-gray-100 min-h-screen">
                 <div className="max-w-7xl mx-auto sm:px-6 lg:px-8">
                     <div className="p-4 bg-gray-200 text-white-700 rounded text-sm mb-5">
-                        * Fitur Filter sedang dalam pengembangan, harap tunggu update terbaru.
+                        * Jika ada usulan lainnya tentang fitur atau perbaikan, silakan hubungi admin.
                     </div>
                     <div className="mb-6 flex flex-wrap gap-4 items-center">
                         <input
@@ -156,7 +176,13 @@ export default function Index({ posts = { data: [] }, categories = [] }) {
                             onClick={handleSetFilter}
                             className="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition duration-200"
                         >
-                           Search
+                            Set
+                        </button>
+                        <button
+                            onClick={handleResetFilter}
+                            className="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition duration-200"
+                        >
+                            Reset Filter
                         </button>
                     </div>
 

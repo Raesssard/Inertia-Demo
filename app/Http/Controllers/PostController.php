@@ -26,6 +26,7 @@ class PostController extends Controller
         if ($request->filled('start_date')) {
             $query->whereDate('created_at', '>=', $request->start_date);
         }
+
         if ($request->filled('end_date')) {
             $query->whereDate('created_at', '<=', $request->end_date);
         }
@@ -37,12 +38,13 @@ class PostController extends Controller
         }
 
         $posts = $query->paginate(6)->withQueryString();
-
         $categories = Category::all();
 
         return Inertia::render('Posts/Index', [
             'posts' => $posts,
             'categories' => $categories,
+            'filters' => $request->only(['search', 'category_id', 'sort_by', 'start_date', 'end_date']), // Tambah filters
+            'page' => $request->input('page', 1), // Tambah page ke props
         ]);
     }
 
@@ -50,6 +52,7 @@ class PostController extends Controller
     {
         return Inertia::render('Posts/Show', [
             'post' => $post->load(['category', 'user']),
+            'page' => request()->input('page', 1), // Pastikan page dikirim
         ]);
     }
 
@@ -68,15 +71,14 @@ class PostController extends Controller
             'content' => 'required|string',
             'category_id' => 'nullable|exists:categories,id',
             'image' => 'nullable|image|mimes:jpeg,jpg,png,webp|max:2048',
-            'new_category_name' => 'nullable|string|max:255', // Validasi untuk kategori baru
+            'new_category_name' => 'nullable|string|max:255',
         ]);
 
         $data['user_id'] = Auth::id();
 
-        // Jika ada new_category_name, buat kategori baru
         if ($request->filled('new_category_name')) {
             $category = Category::create(['name' => $request->new_category_name]);
-            $data['category_id'] = $category->id; // Set category_id ke ID kategori baru
+            $data['category_id'] = $category->id;
         }
 
         if ($request->hasFile('image')) {
@@ -97,6 +99,7 @@ class PostController extends Controller
         return Inertia::render('Posts/Edit', [
             'post' => $post,
             'categories' => $categories,
+            'page' => request()->input('page', 1), // Pastikan page dikirim
         ]);
     }
 
@@ -123,7 +126,9 @@ class PostController extends Controller
         }
 
         $post->update($data);
-        return redirect()->route('posts.index')->with('flash', ['success' => 'Post berhasil diperbarui.']);
+        // Redirect dengan page dari request
+        $page = $request->input('page', 1);
+        return redirect()->route('posts.index', ['page' => $page])->with('flash', ['success' => 'Post berhasil diperbarui.']);
     }
 
     public function destroy(Post $post)

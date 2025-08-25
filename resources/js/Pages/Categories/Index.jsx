@@ -1,11 +1,20 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head, Link, router, usePage } from '@inertiajs/react';
-import { useState, useEffect } from 'react';
+import { Head, Link, router, usePage, useForm } from '@inertiajs/react';
+import { useEffect } from 'react';
 import { toast } from 'react-toastify';
 
-export default function Index({ categories = { data: [] } }) {
-    const { flash, auth } = usePage().props; // Tambah auth untuk cek user ID
-    const [searchTerm, setSearchTerm] = useState('');
+export default function Index({ categories = { data: [] }, filters = {} }) {
+    const { flash, auth } = usePage().props;
+    const { data: formData, setData, get } = useForm({
+        search: filters.search || '',
+    });
+
+    // Sinkronkan state dengan filters dari props
+    useEffect(() => {
+        setData({
+            search: filters.search || '',
+        });
+    }, [filters.search]);
 
     // Tampilkan toast berdasarkan flash message
     useEffect(() => {
@@ -18,6 +27,11 @@ export default function Index({ categories = { data: [] } }) {
 
     const handleDelete = (id) => {
         if (window.confirm('Apakah Anda yakin ingin menghapus kategori ini?')) {
+            const category = categories.data.find(cat => cat.id === id);
+            if (category && category.posts_count > 0) {
+                toast.error('Kategori ini tidak dapat dihapus karena sedang digunakan.', { autoClose: 3000 });
+                return;
+            }
             router.delete(`/categories/${id}`, {
                 preserveScroll: true,
                 onError: (errors) => {
@@ -28,14 +42,35 @@ export default function Index({ categories = { data: [] } }) {
         }
     };
 
-    // Filter kategori berdasarkan pencarian
-    const filteredCategories = Array.isArray(categories.data)
-        ? categories.data.filter((cat) => cat?.name?.toLowerCase().includes(searchTerm.toLowerCase()))
-        : [];
+    // Fungsi untuk terapkan filter (search)
+    const handleSetFilter = () => {
+        get('/categories', {
+            preserveState: true,
+            preserveScroll: true,
+            data: { search: formData.search },
+        });
+    };
+
+    // Fungsi reset filter
+    const handleResetFilter = () => {
+        setData({
+            search: '',
+        }, () => {
+            get('/categories', {
+                preserveState: true,
+                preserveScroll: true,
+            });
+        });
+    };
+
+    // Gunakan data langsung dari categories (backend sudah filter)
+    const filteredCategories = Array.isArray(categories.data) ? categories.data : [];
 
     // Debug props
     console.log('Categories props:', categories);
-    console.log('Auth props:', auth); // Debug auth data
+    console.log('Auth props:', auth);
+    console.log('Form Data:', formData);
+    console.log('Filters props:', filters);
 
     // Fallback jika categories tidak valid
     if (!categories || !categories.data || !Array.isArray(categories.data)) {
@@ -61,17 +96,32 @@ export default function Index({ categories = { data: [] } }) {
                 <div className="flex flex-col sm:flex-row justify-between items-center mb-4 gap-4">
                     <input
                         type="text"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
+                        name="search"
+                        value={formData.search}
+                        onChange={(e) => setData('search', e.target.value)}
                         placeholder="Cari kategori..."
                         className="w-full sm:w-auto p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                     />
-                    <Link
-                        href="/categories/create"
-                        className="px-4 py-2 bg-blue-300 text-white rounded hover:bg-blue-700 text-sm"
-                    >
-                        + Tambah Kategori
-                    </Link>
+                    <div className="flex gap-2">
+                        <button
+                            onClick={handleSetFilter}
+                            className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-700 text-sm"
+                        >
+                            Search
+                        </button>
+                        <button
+                            onClick={handleResetFilter}
+                            className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-700 text-sm"
+                        >
+                            Reset Filter
+                        </button>
+                        <Link
+                            href="/categories/create"
+                            className="px-4 py-2 bg-blue-300 text-white rounded hover:bg-blue-700 text-sm"
+                        >
+                            + Tambah Kategori
+                        </Link>
+                    </div>
                 </div>
 
                 <table className="w-full table-auto border-collapse">
@@ -84,9 +134,7 @@ export default function Index({ categories = { data: [] } }) {
                     </thead>
                     <tbody>
                         {filteredCategories.map((cat, index) => {
-                            // Hitung nomor urut global
                             const globalIndex = ((categories.current_page - 1) * categories.per_page) + (index + 1);
-                            // Tambah class berdasarkan posts_count
                             const isUsed = cat.posts_count > 0;
                             const rowClass = isUsed ? 'bg-gray-200' : 'hover:bg-gray-50';
 
@@ -143,7 +191,7 @@ export default function Index({ categories = { data: [] } }) {
                         {filteredCategories.length === 0 && (
                             <tr>
                                 <td colSpan="3" className="text-center py-4 text-gray-500">
-                                    {searchTerm ? 'Tidak ada kategori yang sesuai.' : 'Belum ada kategori.'}
+                                    {formData.search ? 'Tidak ada kategori yang sesuai.' : 'Belum ada kategori.'}
                                 </td>
                             </tr>
                         )}

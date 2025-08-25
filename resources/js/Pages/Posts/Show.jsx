@@ -1,8 +1,8 @@
 import React from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, usePage } from '@inertiajs/react';
 
-export default function Show({ post }) {
+export default function Show({ post, page }) {
     // Fallback jika post undefined
     if (!post) {
         return (
@@ -21,11 +21,14 @@ export default function Show({ post }) {
         });
     };
 
+    // URL kembali ke halaman sebelumnya dengan parameter page
+    const backUrl = page ? `/posts?page=${page}` : '/posts';
+
     return (
         <AuthenticatedLayout
             header={<h2 className="font-semibold text-xl text-gray-800 leading-tight">Detail Postingan</h2>}
         >
-            <Head title={`Detail - ${post.title || 'Postingan'}`} /> {/* Fallback judul */}
+            <Head title={`Detail - ${post.title || 'Postingan'}`} />
 
             <div className="py-12 bg-gray-100 min-h-screen">
                 <div className="max-w-4xl mx-auto sm:px-6 lg:px-8">
@@ -59,7 +62,7 @@ export default function Show({ post }) {
 
                             <div className="mt-6">
                                 <Link
-                                    href="/posts"
+                                    href={backUrl}
                                     className="inline-block bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700 transition"
                                 >
                                     ← Kembali ke daftar

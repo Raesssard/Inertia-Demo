@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, useForm, usePage, Link } from '@inertiajs/react';
 
-export default function Edit({ post, categories }) {
+export default function Edit({ post, categories, page }) {
     const { errors } = usePage().props;
 
     // Fallback jika post atau categories undefined
@@ -30,7 +30,7 @@ export default function Edit({ post, categories }) {
         if (file) {
             setPreview(URL.createObjectURL(file));
         } else {
-            setPreview(post.image ? `/storage/${post.image}` : null); // Kembali ke preview lama kalau file dihapus
+            setPreview(post.image ? `/storage/${post.image}` : null);
         }
     };
 
@@ -38,8 +38,15 @@ export default function Edit({ post, categories }) {
         e.preventDefault();
         submit(`/posts/${post.id}`, {
             forceFormData: true,
+            onSuccess: () => {
+                // Kembali ke halaman sebelumnya setelah sukses
+                window.location.href = page ? `/posts?page=${page}` : '/posts';
+            },
         });
     };
+
+    // URL kembali ke halaman sebelumnya dengan parameter page
+    const backUrl = page ? `/posts?page=${page}` : '/posts';
 
     return (
         <AuthenticatedLayout
@@ -112,7 +119,7 @@ export default function Edit({ post, categories }) {
                                 Simpan Perubahan
                             </button>
                             <Link
-                                href="/posts"
+                                href={backUrl}
                                 className="bg-gray-300 text-black px-4 py-2 rounded hover:bg-gray-400"
                             >
                                 Batal

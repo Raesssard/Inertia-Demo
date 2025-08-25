@@ -21,6 +21,7 @@ class CategoryController extends Controller
 
         return Inertia::render('Categories/Index', [
             'categories' => $categories,
+            'filters' => $request->only('search'), // Tambahkan ini
         ]);
     }
 
@@ -67,6 +68,10 @@ class CategoryController extends Controller
     {
         if (auth::id() !== 1) {
             return redirect('/categories')->with('flash', ['error' => 'Anda tidak memiliki izin untuk menghapus kategori.']);
+        }
+
+        if ($category->posts_count > 0) {
+            return redirect('/categories')->with('flash', ['error' => 'Kategori ini tidak dapat dihapus karena sedang digunakan.']);
         }
 
         $category->delete();
